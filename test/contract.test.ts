@@ -55,10 +55,7 @@ describe('Contract', () => {
     request.addResources(resourcesToForward);
 
     // Fund the transaction
-    const costs = await sender.getTransactionCost(request);
-    request.gasLimit = costs.gasUsed;
-    request.maxFee = costs.maxFee;
-    await sender.fund(request, costs);
+    await request.estimateAndFund(sender);
 
     // Send the transaction
     const response = await sender.sendTransaction(request);
