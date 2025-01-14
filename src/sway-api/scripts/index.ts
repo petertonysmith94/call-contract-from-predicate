@@ -11,3 +11,4 @@
 */
 
 export { TestScript } from './TestScript';
+export { TestScriptLoader } from './TestScriptLoader';

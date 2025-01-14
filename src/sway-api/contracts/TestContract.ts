@@ -22,47 +22,63 @@ import type {
   InvokeFunction,
 } from 'fuels';
 
+export type AssetIdInput = { bits: string };
+export type AssetIdOutput = AssetIdInput;
+
 const abi = {
   "programType": "contract",
   "specVersion": "1",
   "encodingVersion": "1",
   "concreteTypes": [
     {
-      "type": "u64",
-      "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+      "type": "(struct std::asset_id::AssetId, u64)",
+      "concreteTypeId": "229de6686c9c66098e7188f64d380a851d5ebacacaf90d991adf5b5952a70f7b",
+      "metadataTypeId": 0
     }
   ],
-  "metadataTypes": [],
-  "functions": [
+  "metadataTypes": [
     {
-      "inputs": [],
-      "name": "get_count",
-      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "attributes": [
+      "type": "(_, _)",
+      "metadataTypeId": 0,
+      "components": [
         {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
+          "name": "__tuple_element",
+          "typeId": 2
+        },
+        {
+          "name": "__tuple_element",
+          "typeId": 3
         }
       ]
     },
     {
-      "inputs": [
+      "type": "b256",
+      "metadataTypeId": 1
+    },
+    {
+      "type": "struct std::asset_id::AssetId",
+      "metadataTypeId": 2,
+      "components": [
         {
-          "name": "amount",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "bits",
+          "typeId": 1
         }
-      ],
-      "name": "increment_counter",
-      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+      ]
+    },
+    {
+      "type": "u64",
+      "metadataTypeId": 3
+    }
+  ],
+  "functions": [
+    {
+      "inputs": [],
+      "name": "deposit",
+      "output": "229de6686c9c66098e7188f64d380a851d5ebacacaf90d991adf5b5952a70f7b",
       "attributes": [
         {
-          "name": "storage",
-          "arguments": [
-            "write",
-            "read"
-          ]
+          "name": "payable",
+          "arguments": []
         }
       ]
     }
@@ -72,12 +88,7 @@ const abi = {
   "configurables": []
 };
 
-const storageSlots: StorageSlot[] = [
-  {
-    "key": "6e3c7b4f69bbff7132c3c3a62883a6868f47b0bc2a7f21605f29038cd9a5e05f",
-    "value": "0000000000000000000000000000000000000000000000000000000000000000"
-  }
-];
+const storageSlots: StorageSlot[] = [];
 
 export class TestContractInterface extends Interface {
   constructor() {
@@ -85,8 +96,7 @@ export class TestContractInterface extends Interface {
   }
 
   declare functions: {
-    get_count: FunctionFragment;
-    increment_counter: FunctionFragment;
+    deposit: FunctionFragment;
   };
 }
 
@@ -96,8 +106,7 @@ export class TestContract extends Contract {
 
   declare interface: TestContractInterface;
   declare functions: {
-    get_count: InvokeFunction<[], BN>;
-    increment_counter: InvokeFunction<[amount: BigNumberish], BN>;
+    deposit: InvokeFunction<[], [AssetIdOutput, BN]>;
   };
 
   constructor(

@@ -11,3 +11,4 @@
 */
 
 export { TestPredicate } from './TestPredicate';
+export { TestPredicateLoader } from './TestPredicateLoader';
