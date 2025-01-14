@@ -1,21 +1,13 @@
 import { ASSET_A, ASSET_B, launchTestNode } from 'fuels/test-utils';
-import { bn, buildFunctionResult, getContractCallOperations, WalletUnlocked } from 'fuels';
+import { BN, bn, buildFunctionResult } from 'fuels';
 
 import { describe, test, expect } from 'vitest';
 
-/**
- * Imports for the contract factory and bytecode, so that we can use them in the test.
- *
- * Can't find these imports? Make sure you've run `fuels build` to generate these with typegen.
- */
 import { TestContract, TestContractFactory, TestPredicate } from '../src/sway-api';
+import { AssetIdOutput } from '../src/sway-api/contracts/TestContract';
 
 /**
  * Contract Testing
- * 
- *
- * Tests for the contract program type within the TS SDK. Here we will test the deployment of
- * our contract, and the result of call it's functions.
  */
 describe('Contract', () => {
   test('should transfer two assets to contract', async () => {
@@ -36,12 +28,12 @@ describe('Contract', () => {
     await funder.transfer(predicate.address, 100, assetA);
     await funder.transfer(predicate.address, 1000, assetB);
 
-    // Get the balance of the predicate
-    // const { balances: [balanceA, balanceB] } = await predicate.getBalances();
-    // expect(balanceA.assetId).toBe(assetA);
-    // expect(balanceB.assetId).toBe(assetB);
-    // expect(balanceA.amount.toNumber()).toBe(100);
-    // expect(balanceB.amount.toNumber()).toBe(1000);
+    // Assert the balance of the predicate
+    const { balances: [predicateBalanceA, predicateBalanceB] } = await predicate.getBalances();
+    expect(predicateBalanceA.assetId).toBe(assetA);
+    expect(predicateBalanceB.assetId).toBe(assetB);
+    expect(predicateBalanceA.amount.toNumber()).toBe(100);
+    expect(predicateBalanceB.amount.toNumber()).toBe(1000);
 
     // Contract the contract call request
     const contractFromPredicate = new TestContract(contract.id, predicate);
@@ -69,12 +61,32 @@ describe('Contract', () => {
     await sender.fund(request, costs);
 
     // Send the transaction
-    const tx = await sender.sendTransaction(request);
-    const result = await tx.waitForResult();
+    const response = await sender.sendTransaction(request);
+    const result = await response.waitForResult();
     expect(result.isStatusSuccess).toBe(true);
 
-    // TODO: get the result of the function
-    
+    // Get the result of the function calls
+    const fnResult = await buildFunctionResult<[AssetIdOutput, BN][]>(
+      {
+        funcScope: [
+          contractFromPredicate.functions.deposit(),
+          contractFromPredicate.functions.deposit(),
+      ],
+      isMultiCall: true,
+      program: contract,
+      transactionResponse: response,
+    })
+    const { value: [valueA, valueB] } = fnResult;
+    const [resultAssetA, resultAssetAmount] = valueA;
+
+    // Check the result of the first function call
+    expect(resultAssetA).toEqual({ bits: assetA });
+    expect(resultAssetAmount.toNumber()).toBe(100);
+
+    // Check the result of the second function call
+    const [resultAssetB, resultAssetAmountB] = valueB;
+    expect(resultAssetB).toEqual({ bits: assetB });
+    expect(resultAssetAmountB.toNumber()).toBe(1000);
 
     // Get the balance of the contract
     const balanceA = await contract.getBalance(ASSET_A);
